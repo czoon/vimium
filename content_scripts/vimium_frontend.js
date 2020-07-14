@@ -2,6 +2,57 @@
 // This content script must be run prior to domReady so that we perform some operations very early.
 //
 
+//
+//  BEGIN CHAMELEON THEME
+//
+
+/*
+  Current known issues:
+    - Youtube and another pages return sometimes rbga(0, 0, 0, 0) - transparent - when
+      computedStyle is consulted.
+
+  Pending:
+    - Check impact on performance.
+    - Reduce the number of the MutationObserver targets as much as possible.
+*/
+
+let currentRGBStyle, newRGBStyle;
+let R, G, B;
+let styleCount = 1;
+
+//  We start the execution as early as possible
+DomUtils.documentReady(function() {
+  //  We assign a value to oldRBGStyle as soon as possible
+  currentRGBStyle = getCalculatedBodyBackground();
+  this.mutationObserver = new window.MutationObserver(this.checkDiff);
+  this.mutationObserver.observe(document.body, {
+    attributes: true,
+    childList: true,      
+    characterData: true,
+    subtree: true,
+    attributeFilter: ["style"]
+  });
+});
+ 
+function checkDiff() {
+  newRGBStyle = getCalculatedBodyBackground();
+  if(currentRGBStyle != newRGBStyle){
+    currentRGBStyle = newRGBStyle;
+    console.log('New! ' + newRGBStyle);
+  }
+}
+
+function getCalculatedBodyBackground() {
+  console.log(styleCount + ": " + window.getComputedStyle(document.body)["backgroundColor"]);
+  styleCount++;
+  return window.getComputedStyle(document.body)["backgroundColor"];
+}
+
+//
+//  END CHAMELEON THEME
+//
+
+
 root = typeof exports !== 'undefined' && exports !== null ? exports : (window.root != null ? window.root : (window.root = {}));
 // On Firefox, sometimes the variables assigned to window are lost (bug 1408996), so we reinstall them.
 // NOTE(mrmr1993): This bug leads to catastrophic failure (ie. nothing works and errors abound).
