@@ -16,36 +16,59 @@
     - Reduce the number of the MutationObserver targets as much as possible.
 */
 
-let currentRGBStyle, newRGBStyle;
-let R, G, B;
+let currentRGBStyle;
 let styleCount = 1;
 
 //  We start the execution as early as possible
 DomUtils.documentReady(function() {
   //  We assign a value to oldRBGStyle as soon as possible
   currentRGBStyle = getCalculatedBodyBackground();
+  applyAdaptedHudCSS();
+
   this.mutationObserver = new window.MutationObserver(this.checkDiff);
   this.mutationObserver.observe(document.body, {
     attributes: true,
     childList: true,      
     characterData: true,
     subtree: true,
-    attributeFilter: ["style"]
+    //attributeFilter: ["style"]  //  We need something more than just style
   });
 });
- 
+
+function getCalculatedBodyBackground() {
+  styleCount++;
+  return window.getComputedStyle(document.body)["backgroundColor"];
+}
+
 function checkDiff() {
-  newRGBStyle = getCalculatedBodyBackground();
-  if(currentRGBStyle != newRGBStyle){
-    currentRGBStyle = newRGBStyle;
-    console.log('New! ' + newRGBStyle);
+  if(currentRGBStyle != getCalculatedBodyBackground()){
+    applyAdaptedHudCSS();
   }
 }
 
-function getCalculatedBodyBackground() {
-  console.log(styleCount + ": " + window.getComputedStyle(document.body)["backgroundColor"]);
-  styleCount++;
-  return window.getComputedStyle(document.body)["backgroundColor"];
+function applyAdaptedHudCSS(){
+  //  Make a regular expression to extract the RBG colors,
+  //  whether from an rgb or an rgba string.
+  currentRGBStyle = getCalculatedBodyBackground();
+  let rgb = currentRGBStyle.replace(/[^\d,]/g, '').split(',');
+
+  //  We create a set of colors here
+  getColorTone(rgb[0], 10);
+  getColorTone(rgb[1], 10);
+  getColorTone(rgb[2], 10);
+}
+
+//  We pass the percentage of color variation we want
+//  to create our diferent colors for our theme.
+function getColorTone(intColor, tone){
+  //  Make a branchless condition so it's way lighther
+  //  for the CPU.
+
+  console.log('Color conversion');
+  console.log('Original: ' + intColor);
+
+  let result = ((intColor - 10) / (245 - 10)) * (245 - 10) + 10;
+  console.log('Result: ' + result);
 }
 
 //
