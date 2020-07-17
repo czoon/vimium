@@ -17,7 +17,6 @@
 */
 
 let currentRGBStyle;
-let styleCount = 1;
 
 //  We start the execution as early as possible
 DomUtils.documentReady(function() {
@@ -36,7 +35,6 @@ DomUtils.documentReady(function() {
 });
 
 function getCalculatedBodyBackground() {
-  styleCount++;
   return window.getComputedStyle(document.body)["backgroundColor"];
 }
 
@@ -53,22 +51,21 @@ function applyAdaptedHudCSS(){
   let rgb = currentRGBStyle.replace(/[^\d,]/g, '').split(',');
 
   //  We create a set of colors here
-  console.log(getCalculatedRGB(rgb, 10));
-  console.log(getCalculatedRGB(rgb, 5));
-  console.log(getCalculatedRGB(rgb, -5));
+  let rgbStronger = getCalculatedRGB(rgb, 10);
+  let rgbWeaker = getCalculatedRGB(rgb, -5);
 }
 
 function getCalculatedRGB(rgb, tone){
-  let rgbC = [];
+  let calcRGB = [];
 
   for(let i = 0; i < 3; i++){
-    rgbC[i] = getColorTone(rgb[i], tone);
+    calcRGB[i] = getColorTone(rgb[i], tone);
   }
 
   return "rgb(R, G, B)"
-    .replace("R", rgb[0])
-    .replace("G", rgb[1])
-    .replace("B", rgb[2]);
+    .replace("R", calcRGB[0])
+    .replace("G", calcRGB[1])
+    .replace("B", calcRGB[2]);
 }
 
 //  We pass the percentage of color variation we want
