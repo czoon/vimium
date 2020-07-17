@@ -53,22 +53,31 @@ function applyAdaptedHudCSS(){
   let rgb = currentRGBStyle.replace(/[^\d,]/g, '').split(',');
 
   //  We create a set of colors here
-  getColorTone(rgb[0], 10);
-  getColorTone(rgb[1], 10);
-  getColorTone(rgb[2], 10);
+  console.log(getCalculatedRGB(rgb, 10));
+  console.log(getCalculatedRGB(rgb, 5));
+  console.log(getCalculatedRGB(rgb, -5));
+}
+
+function getCalculatedRGB(rgb, tone){
+  let rgbC = [];
+
+  for(let i = 0; i < 3; i++){
+    rgbC[i] = getColorTone(rgb[i], tone);
+  }
+
+  return "rgb(R, G, B)"
+    .replace("R", rgb[0])
+    .replace("G", rgb[1])
+    .replace("B", rgb[2]);
 }
 
 //  We pass the percentage of color variation we want
 //  to create our diferent colors for our theme.
 function getColorTone(intColor, tone){
-  //  Make a branchless condition so it's way lighther
-  //  for the CPU.
+  let conversion = Math.min(Math.max(intColor, 10), 245);
+  conversion += Math.round(conversion * (tone/100));
 
-  console.log('Color conversion');
-  console.log('Original: ' + intColor);
-
-  let result = ((intColor - 10) / (245 - 10)) * (245 - 10) + 10;
-  console.log('Result: ' + result);
+  return Math.min(conversion, 245);
 }
 
 //
