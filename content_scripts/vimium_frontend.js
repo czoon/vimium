@@ -53,6 +53,25 @@ function applyAdaptedHudCSS(){
   //  We create a set of colors here
   let rgbStronger = getCalculatedRGB(rgb, 10);
   let rgbWeaker = getCalculatedRGB(rgb, -5);
+
+  let injectedCSS = `
+  :root{
+    --dark1: DARK1 !important;
+    --dark2: DARK2 !important;
+  }`
+    .replace("DARK1", rgbStronger)
+    .replace("DARK2", rgbWeaker);
+
+  let vimium_chameleon_style = document.createElement('style');
+  vimium_chameleon_style.type = 'text/css';
+  vimium_chameleon_style.innerHTML = injectedCSS;
+  vimium_chameleon_style.id = 'vimium_chameleon_style';
+
+  if(document.getElementById('vimium_chameleon_style')){
+    document.getElementById('vimium_chameleon_style').remove();
+  }
+
+  document.head.append(vimium_chameleon_style);
 }
 
 function getCalculatedRGB(rgb, tone){
@@ -76,6 +95,7 @@ function getColorTone(intColor, tone){
 
   return Math.min(conversion, 245);
 }
+
 
 //
 //  END CHAMELEON THEME
