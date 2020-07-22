@@ -12,7 +12,9 @@ class UIComponent {
     this.options = null;
     this.shadowDOM = null;
 
+
     DomUtils.documentReady(() => {
+
       const styleSheet = DomUtils.createElement("style");
       styleSheet.type = "text/css";
       // Default to everything hidden while the stylesheet loads.
@@ -28,6 +30,7 @@ class UIComponent {
         seamless: "seamless"
       });
 
+
       const shadowWrapper = DomUtils.createElement("div");
       // Firefox doesn't support createShadowRoot, so guard against its non-existance.
       // https://hacks.mozilla.org/2018/10/firefox-63-tricks-and-treats/ says
@@ -42,20 +45,9 @@ class UIComponent {
       this.handleDarkReaderFilter();
       this.toggleIframeElementClasses("vimiumUIComponentVisible", "vimiumUIComponentHidden");
 
-      //  We assign a value to oldRBGStyle as soon as possible
-      /*
       this.currentRGBStyle = this.getCalculatedBodyBackground();
       this.applyAdaptedHudCSS();
-      */
-
-      this.mutationObserver = new window.MutationObserver(this.checkDiff);
-      this.mutationObserver.observe(document.body, {
-        attributes: true,
-        childList: true,      
-        characterData: true,
-        subtree: true,
-        //attributeFilter: ["style"]  //  We need something more than just style
-      });
+      this.handleChameleonTheme();
 
       // Open a port and pass it to the iframe via window.postMessage.  We use an AsyncDataFetcher to handle
       // requests which arrive before the iframe (and its message handlers) have completed initialization.  See
@@ -130,6 +122,21 @@ class UIComponent {
       - Reduce the number of the MutationObserver targets as much as possible.
   */
 
+  handleChameleonTheme(){
+      const chameleonCallBack = () => {
+        this.checkDiff();
+      }
+
+      this.mutationObserver = new window.MutationObserver(chameleonCallBack);
+      this.mutationObserver.observe(document.body, {
+        attributes: true,
+        childList: true,      
+        characterData: true,
+        subtree: true,
+        //attributeFilter: ["style"]  //  We need something more than just style
+      });
+  }
+
   getCalculatedBodyBackground() {
     return window.getComputedStyle(document.body)["backgroundColor"];
   }
@@ -151,10 +158,10 @@ class UIComponent {
     let rgbWeaker = this.getCalculatedRGB(rgb, -5);
 
     let injectedCSS = `
-    :root{
-      --dark1: DARK1 !important;
-      --dark2: DARK2 !important;
-    }`
+      #vomnibar input {
+        background-color: DARK1 !important; 
+      }
+    `
       .replace("DARK1", rgbStronger)
       .replace("DARK2", rgbWeaker);
 
@@ -167,7 +174,7 @@ class UIComponent {
       this.shadowDOM.append('vimium_chameleon_style').remove();
     }
 
-    this.shadowDOM.append(vimium_chameleon_style);
+    this.shadowDOM.appendChild(vimium_chameleon_style);
   }
 
   getCalculatedRGB(rgb, tone){
