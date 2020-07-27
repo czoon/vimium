@@ -5,6 +5,7 @@
 //
 const Vomnibar = {
   vomnibarUI: null, // the dialog instance for this window
+  chameleonTheme: null,
   getUI() { return this.vomnibarUI; },
   completers: {},
 
@@ -451,6 +452,7 @@ UIComponentServer.registerHandler(function(event) {
 
 document.addEventListener("DOMContentLoaded", function() {
   DomUtils.injectUserCss(); // Manually inject custom user styles.
+  //  chameleonTheme = new ChameleonTheme();
 });
 
 global.Vomnibar = Vomnibar;
