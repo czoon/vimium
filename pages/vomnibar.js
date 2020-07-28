@@ -452,7 +452,8 @@ UIComponentServer.registerHandler(function(event) {
 
 document.addEventListener("DOMContentLoaded", function() {
   DomUtils.injectUserCss(); // Manually inject custom user styles.
-  //  chameleonTheme = new ChameleonTheme();
+  console.log(global);
+  ChameleonTheme.handleChameleonTheme();
 });
 
 global.Vomnibar = Vomnibar;

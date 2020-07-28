@@ -96,5 +96,7 @@ class ChameleonTheme {
 
         return Math.min(conversion, 245);
     }
-
 }
+
+global.ChameleonTheme = ChameleonTheme;
+console.log('dummy');
