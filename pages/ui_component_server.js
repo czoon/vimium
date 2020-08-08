@@ -5,9 +5,15 @@
 var registerPort = function(event) {
   chrome.storage.local.get("vimiumSecret", function({vimiumSecret: secret}) {
     console.log(typeof event.data);
+    if(typeof event.data == "object" && event.data.chameleonCSS){
+      UIComponentServer.injectChameleonCSS(event.data.chameleonCSS);
+    }
+    // let receivedSecret = typeof event.data == "number" ? event.data : event.data.vimiumSecret;
     if ((event.source !== window.parent) || (event.data !== secret))
       return;
     UIComponentServer.portOpen(event.ports[0]);
+
+
     //window.removeEventListener("message", registerPort);
   });
 };
@@ -36,6 +42,19 @@ var UIComponentServer = {
   },
 
   hide() { this.postMessage("hide"); },
+
+  injectChameleonCSS(receivedCSS){
+    let chameleonCSS = document.createElement("style");
+    chameleonCSS.type = "text/css";
+    chameleonCSS.id = "chameleon-theme";
+    chameleonCSS.innerHTML = receivedCSS;
+
+    if(document.getElementById(chameleonCSS.id)){
+      document.getElementById(chameleonCSS.id).remove();
+    }
+
+    document.head.append(chameleonCSS);
+  },
 
   // We require both that the DOM is ready and that the port has been opened before the UI component is ready.
   // These events can happen in either order.  We count them, and notify the content script when we've seen
