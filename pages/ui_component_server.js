@@ -7,7 +7,7 @@ var registerPort = function(event) {
     if ((event.source !== window.parent) || (event.data !== secret))
       return;
     UIComponentServer.portOpen(event.ports[0]);
-    window.removeEventListener("message", registerPort);
+    //window.removeEventListener("message", registerPort);
   });
 };
 window.addEventListener("message", registerPort);

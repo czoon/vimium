@@ -12,6 +12,7 @@ class UIComponent {
     this.options = null;
     this.shadowDOM = null;
 
+    const { port1, port2 } = new MessageChannel;
 
     DomUtils.documentReady(() => {
 
@@ -55,9 +56,11 @@ class UIComponent {
         document.documentElement.appendChild(shadowWrapper);
 
         this.iframeElement.addEventListener("load", () => {
-          // Get vimiumSecret so the iframe can determine that our message isn't the page impersonating us.
+          this.currentRGBStyle = this.getCalculatedBodyBackground();
+          this.applyAdaptedHudCSS();
+          this.handleChameleonTheme();
+
           chrome.storage.local.get("vimiumSecret", ({ vimiumSecret }) => {
-            const { port1, port2 } = new MessageChannel;
             this.iframeElement.contentWindow.postMessage(vimiumSecret, chrome.runtime.getURL(""), [ port2 ]);
             port1.onmessage = event => {
               let eventName = null;
@@ -103,6 +106,102 @@ class UIComponent {
       }
     });
   }
+
+//
+//  BEGIN CHAMELEONTHEME
+//
+
+/*
+    Current known issues:
+    - Youtube and another pages return sometimes rbga(0, 0, 0, 0) - transparent - when
+        computedStyle is consulted.
+
+    Pending:
+    - Check impact on performance.
+    - Reduce the number of the MutationObserver targets as much as possible.
+*/
+
+    handleChameleonTheme() {
+        const chameleonCallBack = () => {
+            this.checkDiff();
+        }
+
+        this.mutationObserver = new window.MutationObserver(chameleonCallBack);
+        this.mutationObserver.observe(document.body, {
+            attributes: true,
+            childList: true,
+            characterData: true,
+            subtree: true,
+            //attributeFilter: ["style"]  //  We need something more than just style
+        });
+    }
+
+    getCalculatedBodyBackground() {
+        return window.getComputedStyle(document.body)["backgroundColor"];
+    }
+
+    checkDiff() {
+        if (this.currentRGBStyle != this.getCalculatedBodyBackground()) {
+            this.applyAdaptedHudCSS();
+        }
+    }
+
+    applyAdaptedHudCSS() {
+        //  Make a regular expression to extract the RBG colors,
+        //  whether from an rgb or an rgba string.
+        this.currentRGBStyle = this.getCalculatedBodyBackground();
+        let rgb = this.currentRGBStyle.replace(/[^\d,]/g, '').split(',');
+
+        //  We create a set of colors here
+        let rgbStronger = this.getCalculatedRGB(rgb, 10);
+        let rgbWeaker = this.getCalculatedRGB(rgb, -5);
+
+        let chameleonCSS = `
+      #vomnibar input {
+        background-color: DARK1 !important; 
+      }
+    `
+            .replace("DARK1", rgbStronger)
+            .replace("DARK2", rgbWeaker);
+
+        chrome.storage.local.get("vimiumSecret", ({ vimiumSecret }) => {
+            var componentMessage = {
+              "vimiumSecret" : vimiumSecret,
+              "chameleonCSS" : chameleonCSS
+            };
+
+            this.iframeElement.contentWindow.postMessage(chrome.runtime.getURL(""));
+            this.iframeElement.contentWindow.postMessage(componentMessage, chrome.runtime.getURL(""));
+        });
+    }
+
+    getCalculatedRGB(rgb, tone) {
+        let calcRGB = [];
+
+        for (let i = 0; i < 3; i++) {
+            calcRGB[i] = this.getColorTone(rgb[i], tone);
+        }
+
+        return "rgb(R, G, B)"
+            .replace("R", calcRGB[0])
+            .replace("G", calcRGB[1])
+            .replace("B", calcRGB[2]);
+    }
+
+    //  We pass the percentage of color variation we want
+    //  to create our diferent colors for our theme.
+    getColorTone(intColor, tone) {
+        let conversion = Math.min(Math.max(intColor, 10), 245);
+        conversion += Math.round(conversion * (tone / 100));
+
+        return Math.min(conversion, 245);
+    }
+
+//
+//  END CHAMELEONTHEME
+//
+
+
 
   // This ensures that Vimium's UI elements (HUD, Vomnibar) honor the browser's light/dark theme preference,
   // even when the user is also using the DarkReader extension. DarkReader is the most popular dark mode
