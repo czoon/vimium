@@ -147,22 +147,35 @@ class UIComponent {
     }
 
     applyAdaptedHudCSS() {
-        //  Make a regular expression to extract the RBG colors,
-        //  whether from an rgb or an rgba string.
         this.currentRGBStyle = this.getCalculatedBodyBackground();
         let rgb = this.currentRGBStyle.replace(/[^\d,]/g, '').split(',');
 
         //  We create a set of colors here
-        let rgbStronger = this.getCalculatedRGB(rgb, 10);
-        let rgbWeaker = this.getCalculatedRGB(rgb, -5);
+        let rgbStronger = this.getCalculatedRGB(rgb, 15);
+        let rgbWeaker = this.getCalculatedRGB(rgb, -10);
+        let rgbEmphasis = this.getCalculatedRGB(rgb, 30);
 
         let chameleonCSS = `
-      #vomnibar input {
-        background-color: DARK1 !important; 
-      }
-    `
-            .replace("DARK1", rgbStronger)
-            .replace("DARK2", rgbWeaker);
+          #vomnibar input {
+            background-color: ${rgbWeaker} !important; 
+          }
+          
+          #vomnibar, #vomnibar .vomnibarSearchArea {
+            background-color: ${rgbStronger} !important;
+          }
+
+          #vomnibar ul {
+            background-color: ${rgbWeaker} !important;
+          }
+
+          .vomnibarSelected {
+            background-color: ${rgbEmphasis} !important;
+          }
+
+          .vimiumHUDSearchArea{
+            background-color: ${rgbWeaker} !important;
+          }
+        `;
 
         chrome.storage.local.get("vimiumSecret", ({ vimiumSecret }) => {
             var componentMessage = {
@@ -170,7 +183,7 @@ class UIComponent {
               "chameleonCSS" : chameleonCSS
             };
 
-            this.iframeElement.contentWindow.postMessage(chrome.runtime.getURL(""));
+            console.log(this.port2);
             this.iframeElement.contentWindow.postMessage(componentMessage, chrome.runtime.getURL(""));
         });
     }
