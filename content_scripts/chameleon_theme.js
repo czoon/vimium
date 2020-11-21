@@ -74,22 +74,19 @@ class ChameleonTheme {
           }
         `;
 
-          this.iframeElement.addEventListener("load", () => {
-            console.log('loadListener chameleon_theme');
-            chrome.storage.local.get("vimiumSecret", ({ vimiumSecret }) => {
-                var componentMessage = {
-                  "vimiumSecret" : vimiumSecret,
-                  "chameleonCSS" : chameleonCSS
-                };
+        chrome.storage.local.get("vimiumSecret", ({ vimiumSecret }) => {
+            var componentMessage = {
+              "vimiumSecret" : vimiumSecret,
+              "chameleonCSS" : chameleonCSS
+            };
 
-                // I am afraid it's not possible to share ports between clases since
-                // Javascript 'neuteres' them, therefore we have to declare a new one:
-                // https://developer.mozilla.org/en-US/docs/Web/API/Channel_Messaging_API
-                const { port3, port4 } = new MessageChannel;
+            // I am afraid it's not possible to share ports between clases since
+            // Javascript 'neuteres' them, therefore we have to declare a new one:
+            // https://developer.mozilla.org/en-US/docs/Web/API/Channel_Messaging_API
+            const { port3 } = new MessageChannel;
 
-                this.iframeElement.contentWindow.postMessage(componentMessage, chrome.runtime.getURL(""), [ port3 ]);
-            });
-          });
+            this.iframeElement.contentWindow.postMessage(componentMessage, chrome.runtime.getURL(""), port3);
+        });
     }
 
     getCalculatedRGB(rgb, tone) {
