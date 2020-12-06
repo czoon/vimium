@@ -4,20 +4,42 @@
 
 var registerPort = function(event) {
   chrome.storage.local.get("vimiumSecret", function({vimiumSecret: secret}) {
-    console.log(typeof event.data);
-    if(typeof event.data == "object" && event.data.chameleonCSS){
-      UIComponentServer.injectChameleonCSS(event.data.chameleonCSS);
-    }
-    // let receivedSecret = typeof event.data == "number" ? event.data : event.data.vimiumSecret;
-    if ((event.source !== window.parent) || (event.data !== secret))
+
+    if ((event.source !== window.parent)) {
       return;
-    UIComponentServer.portOpen(event.ports[0]);
+    }
 
+    switch(typeof event.data){
+      case "object":
+        if(checkSecret(secret, event.data.vimiumSecret)) {
+          if(event.data.chameleonCSS) {
+            UIComponentServer.injectChameleonCSS(event.data.chameleonCSS);
+            break;
+          }
+        }
+        return;
 
-    //window.removeEventListener("message", registerPort);
+      case "number":
+        if(checkSecret(secret, event.data) == false) {
+          return;
+        }
+        UIComponentServer.portOpen(event.ports[0]);
+        break;
+      
+      default: 
+        return;
+    }
+
   });
 };
 window.addEventListener("message", registerPort);
+
+var checkSecret = function(vimiumSecret, receivedSecret) {  
+  if(vimiumSecret && receivedSecret && (vimiumSecret === receivedSecret)){
+    return true;
+  }
+  return false;
+};
 
 var UIComponentServer = {
   ownerPagePort: null,
